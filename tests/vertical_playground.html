@@ -209,8 +209,22 @@
         }
       }
 
+      // SEQUENCE PROTOTYPING
+      // Glows from the top of whatever stack is selected, downwards.
+      function glowStackInSequence() {
+        if(Blockly.selected) {
+          let parent = workspace.getBlockById(Blockly.selected.id).getSurroundParent();
+          let glowId;
+          if(parent !== null) {
+            glowId = parent.id;
+          }else {
+            glowId = Blockly.selected.id;
+          }
+          workspace.glowStackInSequence(glowId,true,500)
+        }
+      }
+
       function sprinkles(n) {
-        var prototypes = [];
         var toolbox = workspace.options.languageTree;
         if (!toolbox) {
           console.error('Toolbox not found; add a toolbox element to the DOM.');
@@ -226,6 +240,36 @@
             Math.round(Math.random() * 600 + 40)
           );
         }
+      }
+
+      function createRandomBlock() {
+        var toolbox = workspace.options.languageTree;
+        if (!toolbox) {
+          console.error('Toolbox not found; add a toolbox element to the DOM.');
+          return;
+        }
+        var blocks = toolbox.getElementsByTagName('block');
+        var blockXML = blocks[Math.floor(Math.random() * blocks.length)];
+        var block = Blockly.Xml.domToBlock(blockXML, workspace);
+        block.initSvg();
+        block.moveBy(
+          Math.round(Math.random() * 450 + 40),
+          Math.round(Math.random() * 600 + 40)
+        );
+      }
+
+      function toggleBlockBrush(){
+        workspace.toggleBlockBrush()
+        // As long as you can record touch Events
+        // Maybe just continually record mouse position?
+        // nope
+        /*
+        if brush is activated
+        record touch Events
+        calculate the distance between points
+        calculate the number of bklocoks that can fit beteween
+        create the XML that of random motion/whatever blocks that can fit in there
+        */
       }
 
       var equalsXml = [
@@ -551,11 +595,19 @@
     </p>
 
     <p>
+      Getting started helpers:
+      <input type="button" value="Random block!" onclick="createRandomBlock()">
+      <input type="button" value="Toggle block brush!" onclick="toggleBlockBrush()">
+    </p>
+
+    <p>
       Glows: &nbsp;
       <input type="button" value="Glow last clicked block" onclick="glowBlock()" />
       <input type="button" value="Unglow last clicked block" onclick="unglowBlock()" />
       <input type="button" value="Stack glow last clicked block" onclick="glowStack()" />
       <input type="button" value="Stack unglow last clicked block" onclick="unglowStack()" />
+      <br></br>
+      <input type="button" value="Glow last stack in sequence" onclick="glowStackInSequence()" />
     </p>
 
     <p>

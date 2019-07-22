@@ -228,6 +228,21 @@ Blockly.BlockSvg.prototype.setGlowBlock = function(isGlowingBlock) {
 };
 
 /**
+ * Glow only this particular block with the same filter as a stack, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingBlock Whether the block should glow.
+ */
+Blockly.BlockSvg.prototype.setGlowBlockWithFilter = function(isGlowingBlock) {
+  // Update the applied SVG filter if the property has changed
+  var svg = this.svgPath_;
+  if (isGlowingBlock && !svg.hasAttribute('filter')) {
+    var stackGlowFilterId = this.workspace.options.stackGlowFilterId || 'blocklyStackGlowFilter';
+    svg.setAttribute('filter', 'url(#' + stackGlowFilterId + ')');
+  } else if (!isGlowingBlock && svg.hasAttribute('filter')) {
+    svg.removeAttribute('filter');
+  }
+};
+
+/**
  * Glow the stack starting with this block, to highlight it visually as if it's running.
  * @param {boolean} isGlowingStack Whether the stack starting with this block should glow.
  */
@@ -242,6 +257,22 @@ Blockly.BlockSvg.prototype.setGlowStack = function(isGlowingStack) {
     svg.removeAttribute('filter');
   }
 };
+
+/**
+ * Glow the stack IN SEQUENCE starting with this block, to highlight it visually as if it's running.
+ * @param {boolean} isGlowingStack Whether the stack starting with this block should glow.
+ */
+// Blockly.BlockSvg.prototype.setGlowStackInSequence = function(isGlowingStack) {
+//   this.isGlowingStack_ = isGlowingStack;
+//   // Update the applied SVG filter if the property has changed
+//   var svg = this.getSvgRoot();
+//   if (this.isGlowingStack_ && !svg.hasAttribute('filter')) {
+//     var stackGlowFilterId = this.workspace.options.stackGlowFilterId || 'blocklyStackGlowFilter';
+//     svg.setAttribute('filter', 'url(#' + stackGlowFilterId + ')');
+//   } else if (!this.isGlowingStack_ && svg.hasAttribute('filter')) {
+//     svg.removeAttribute('filter');
+//   }
+// };
 
 /**
  * Block's mutator icon (if any).

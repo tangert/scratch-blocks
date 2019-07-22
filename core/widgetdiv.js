@@ -93,6 +93,7 @@ Blockly.WidgetDiv.createDom = function() {
   // Create an HTML container for popup overlays (e.g. editor widgets).
   Blockly.WidgetDiv.DIV =
       goog.dom.createDom(goog.dom.TagName.DIV, 'blocklyWidgetDiv');
+
   document.body.appendChild(Blockly.WidgetDiv.DIV);
 };
 
@@ -274,7 +275,7 @@ Blockly.WidgetDiv.positionWithAnchor = function(viewportBBox, anchorBBox,
   var y = Blockly.WidgetDiv.calculateY_(viewportBBox, anchorBBox, widgetSize);
   var x = Blockly.WidgetDiv.calculateX_(viewportBBox, anchorBBox, widgetSize,
       rtl);
-  
+
   if (y < 0) {
     Blockly.WidgetDiv.positionInternal_(x, 0, widgetSize.height + y);
   }

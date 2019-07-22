@@ -1035,12 +1035,14 @@ Blockly.Css.CONTENT = [
     'cursor: default;',
     'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
     'margin: 0;',
+    // 'padding: 50px',
     'outline: none;',
     'padding: 4px 0;',
     'position: absolute;',
     'overflow-y: auto;',
     'overflow-x: hidden;',
     'z-index: 20000;',  /* Arbitrary, but some apps depend on it... */
+    'transition: all 0.2s',
   '}',
 
   '.blocklyDropDownDiv .goog-menu {',
@@ -1048,6 +1050,15 @@ Blockly.Css.CONTENT = [
     'font: normal 13px "Helvetica Neue", Helvetica, sans-serif;',
     'outline: none;',
     'z-index: 20000;',  /* Arbitrary, but some apps depend on it... */
+  '}',
+
+  /**
+   * NEW HOVER INTERACTIONS
+   * @author tyler@angert.com (Tyler Angert)
+  */
+
+  '.blocklyWidgetDiv .goog-menu:hover {',
+    'background: red',
   '}',
 
   /* Copied from: goog/css/menuitem.css */

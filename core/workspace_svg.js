@@ -125,6 +125,13 @@ goog.inherits(Blockly.WorkspaceSvg, Blockly.Workspace);
  */
 Blockly.WorkspaceSvg.prototype.resizeHandlerWrapper_ = null;
 
+
+/**
+Marker for turning on the block brush or not
+@type {boolean}
+**/
+Blockly.WorkspaceSvg.prototype.blockBrushActivated = false;
+
 /**
  * The render status of an SVG workspace.
  * Returns `false` for headless workspaces and true for instances of
@@ -465,11 +472,17 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
   if (!this.isFlyout) {
     Blockly.bindEventWithChecks_(this.svgGroup_, 'mousedown', this,
         this.onMouseDown_);
+
+    // Add support for mouse move events for continuous interaction
+    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mouseenter', this,
+    //     this.onMouseOver_);
+
     if (this.options.zoomOptions && this.options.zoomOptions.wheel) {
       // Mouse-wheel.
       Blockly.bindEventWithChecks_(this.svgGroup_, 'wheel', this,
           this.onMouseWheel_);
     }
+    // Bind mouse vents
   }
 
   // Determine if there needs to be a category tree, or a simple list of
@@ -754,12 +767,21 @@ Blockly.WorkspaceSvg.prototype.getParentSvg = function() {
   return null;
 };
 
+// MARK: New NEED
+Blockly.WorkspaceSvg.prototype.toggleBlockBrush = function() {
+  this.blockBrushActivated = !this.blockBrushActivated;
+}
+
+// MARK: Need
 /**
  * Translate this workspace to new coordinates.
  * @param {number} x Horizontal translation.
  * @param {number} y Vertical translation.
  */
 Blockly.WorkspaceSvg.prototype.translate = function(x, y) {
+
+  // console.log("TRANSLATING: " + x,y);
+
   if (this.useWorkspaceDragSurface_ && this.isDragSurfaceActive_) {
     this.workspaceDragSurface_.translateSurface(x,y);
   } else {
@@ -968,7 +990,45 @@ Blockly.WorkspaceSvg.prototype.glowStack = function(id, isGlowingStack) {
     }
   }
   block.setGlowStack(isGlowingStack);
-};
+}
+
+/**
+ * TODO
+ * Glow/unglow a stack in the workspace, block by block in sequence.
+ * Used for visualizing the execution model of the code.
+ * @param {?string} id ID of block which starts the stack.
+ * @param {boolean} isGlowingStack Whether to glow the stack.
+ */
+ Blockly.WorkspaceSvg.prototype.glowStackInSequence = async function(id, isGlowingStack, time) {
+   var block = null;
+   // How to iterate through the blocks in a stack?
+   // You have next block, next connection, top blocks all available
+   if (id) {
+     block = this.getBlockById(id);
+     if (!block) {
+       throw 'Tried to glow stack on block that does not exist.';
+     }
+   }
+
+   // First glow the top block
+   block.setGlowBlockWithFilter(isGlowingStack);
+
+   // Glow the next blocks in order
+   while(block.getNextBlock() !== null) {
+       // Wait 0.5 seconds, then reset the block that was just highlighted
+       await new Promise(resolve => setTimeout(resolve,time));
+       block.setGlowBlockWithFilter(false);
+
+       // Set the next block and glow it
+       block =  block.getNextBlock();
+       block.setGlowBlockWithFilter(true);
+     }
+
+     // Set the last block off once you exit the loop
+     await new Promise(resolve => setTimeout(resolve,time));
+     block.setGlowBlockWithFilter(false);
+}
+
 
 /**
  * Visually report a value associated with a block.
@@ -1219,6 +1279,7 @@ Blockly.WorkspaceSvg.prototype.recordBlocksArea_ = function() {
   }
 };
 
+// MARK: Need
 /**
  * Is the mouse event over a delete area (toolbox or non-closing flyout)?
  * @param {!Event} e Mouse move event.
@@ -1226,6 +1287,7 @@ Blockly.WorkspaceSvg.prototype.recordBlocksArea_ = function() {
  *     which delete area the event is over.
  */
 Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
+  // console.log(e)
   var xy = new goog.math.Coordinate(e.clientX, e.clientY);
   if (this.deleteAreaTrash_ && this.deleteAreaTrash_.contains(xy)) {
     return Blockly.DELETE_AREA_TRASH;
@@ -1236,12 +1298,14 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
   return Blockly.DELETE_AREA_NONE;
 };
 
+// MARK: Need
 /**
  * Is the mouse event inside the blocks UI?
  * @param {!Event} e Mouse move event.
  * @return {boolean} True if event is within the bounds of the blocks UI or delete area
  */
 Blockly.WorkspaceSvg.prototype.isInsideBlocksArea = function(e) {
+  // console.log(e)
   var xy = new goog.math.Coordinate(e.clientX, e.clientY);
   if (this.isDeleteArea(e) || (this.blocksArea_ && this.blocksArea_.contains(xy))) {
     return true;
@@ -1249,18 +1313,45 @@ Blockly.WorkspaceSvg.prototype.isInsideBlocksArea = function(e) {
   return false;
 };
 
+// MARK: Need
 /**
  * Handle a mouse-down on SVG drawing surface.
  * @param {!Event} e Mouse down event.
  * @private
  */
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
-  var gesture = this.getGesture(e);
-  if (gesture) {
-    gesture.handleWsStart(e, this);
+  if(this.blockBrushActivated) {
+
+    var gesture = this.getGesture(e);
+    if (gesture) {
+      gesture.handleWsStart(e, this);
+    }
+
+    // console.log("Mouse down with block brush")
+    // console.log("LAYER:" + e.layerX, e.layerY)
+    console.log("CLIENT:" + e.clientX, e.clientY)
+
+  } else {
+    var gesture = this.getGesture(e);
+    if (gesture) {
+      gesture.handleWsStart(e, this);
+    }
   }
 };
 
+/**
+Tyler
+ * Handle a mouse-move on SVG drawing surface.
+ * @param {!Event} e Mouse move event.
+ * @private
+ */
+// Blockly.WorkspaceSvg.prototype.onMouseOver_ = function(e) {
+//   console.log("Mouse over")
+// };
+
+
+
+// MARK: Need
 /**
  * Start tracking a drag of an object on this workspace.
  * @param {!Event} e Mouse down event.
@@ -1268,20 +1359,24 @@ Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
  */
 Blockly.WorkspaceSvg.prototype.startDrag = function(e, xy) {
   // Record the starting offset between the bubble's location and the mouse.
+  // console.log(e);
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
       this.getInverseScreenCTM());
+
   // Fix scale of mouse event.
   point.x /= this.scale;
   point.y /= this.scale;
   this.dragDeltaXY_ = goog.math.Coordinate.difference(xy, point);
 };
 
+// MARK: Need
 /**
  * Track a drag of an object on this workspace.
  * @param {!Event} e Mouse move event.
  * @return {!goog.math.Coordinate} New location of object.
  */
 Blockly.WorkspaceSvg.prototype.moveDrag = function(e) {
+  // console.log(e);
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
       this.getInverseScreenCTM());
   // Fix scale of mouse event.
@@ -1314,6 +1409,7 @@ Blockly.WorkspaceSvg.prototype.isDraggable = function() {
 Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
   // TODO: Remove gesture cancellation and compensate for coordinate skew during
   // zoom.
+  // console.log("Wheeling");
   if (this.currentGesture_) {
     this.currentGesture_.cancel();
   }

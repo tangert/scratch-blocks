@@ -64,6 +64,7 @@ Blockly.Blocks.defaultToolbox = '<xml id="toolbox-categories" style="display: no
         '</shadow>' +
       '</value>' +
     '</block>' +
+    //
     '<block type="motion_gotoxy" id="motion_gotoxy">' +
       '<value name="X">' +
         '<shadow id="movex" type="math_number">' +

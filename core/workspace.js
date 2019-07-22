@@ -269,7 +269,7 @@ Blockly.Workspace.prototype.getAllBlocks = function(ordered) {
   if (ordered) {
     // Slow, but ordered.
     // This gets all levels of descendants because getDescendants
-    // is called recuusively.  They are added to a new list, not the
+    // is called recursively.  They are added to a new list, not the
     // list that it's iterating over.
     var topBlocks = this.getTopBlocks(true);
     var blocks = [];
