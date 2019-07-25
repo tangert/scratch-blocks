@@ -176,6 +176,7 @@ Blockly.RenderedConnection.prototype.tighten_ = function() {
   }
 };
 
+// MARK: Need
 /**
  * Find the closest compatible connection to this connection.
  * All parameters are in workspace units.

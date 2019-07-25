@@ -224,7 +224,7 @@ Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
  */
 Blockly.InsertionMarkerManager.prototype.update = function(dxy, deleteArea) {
   var candidate = this.getCandidate_(dxy);
-
+  // console.log(candidate)
   this.wouldDeleteBlock_ = this.shouldDelete_(candidate, deleteArea);
   var shouldUpdate = this.wouldDeleteBlock_ ||
       this.shouldUpdatePreviews_(candidate, dxy);
@@ -352,6 +352,9 @@ Blockly.InsertionMarkerManager.prototype.shouldUpdatePreviews_ = function(
  *     connection, and a radius.
  */
 Blockly.InsertionMarkerManager.prototype.getCandidate_ = function(dxy) {
+
+  // console.log("Finding candidate...");
+
   var radius = this.getStartRadius_();
   var candidateClosest = null;
   var candidateLocal = null;
@@ -365,6 +368,11 @@ Blockly.InsertionMarkerManager.prototype.getCandidate_ = function(dxy) {
       radius = neighbour.radius;
     }
   }
+
+  // if (candidateClosest) {
+  //   console.log("FOUND ONE")
+  // }
+
   return {
     closest: candidateClosest,
     local: candidateLocal,
@@ -592,6 +600,9 @@ Blockly.InsertionMarkerManager.prototype.unhighlightBlock_ = function() {
  * @private
  */
 Blockly.InsertionMarkerManager.prototype.disconnectMarker_ = function() {
+
+  console.log("Disconnecting")
+
   if (!this.markerConnection_) {
     console.log('No insertion marker connection to disconnect');
     return;
@@ -639,6 +650,8 @@ Blockly.InsertionMarkerManager.prototype.disconnectMarker_ = function() {
  * @private
  */
 Blockly.InsertionMarkerManager.prototype.connectMarker_ = function() {
+  console.log("Connecting!")
+
   var local = this.localConnection_;
   var closest = this.closestConnection_;
 

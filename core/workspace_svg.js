@@ -312,6 +312,14 @@ Blockly.WorkspaceSvg.prototype.inverseScreenCTM_ = null;
  */
 Blockly.WorkspaceSvg.prototype.inverseScreenCTMDirty_ = true;
 
+/** Tyler
+ * .Convenience for referencing all block xml
+ * @type {Boolean}
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.allBlocksXml = null;
+
+
 /**
  * Getter for the inverted screen CTM.
  * @return {SVGMatrix} The matrix to use in mouseToSvg
@@ -474,15 +482,18 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
         this.onMouseDown_);
 
     // Add support for mouse move events for continuous interaction
-    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mouseenter', this,
+    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mousemove', this,
+    //     this.onMouseMove_);
+    //
+    // // Add support for mouse move events for continuous interaction
+    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mouseover', this,
     //     this.onMouseOver_);
 
-    if (this.options.zoomOptions && this.options.zoomOptions.wheel) {
+    if (this.options.zoomOptions && this.options.zoomOptions.wheel ) {
       // Mouse-wheel.
       Blockly.bindEventWithChecks_(this.svgGroup_, 'wheel', this,
           this.onMouseWheel_);
     }
-    // Bind mouse vents
   }
 
   // Determine if there needs to be a category tree, or a simple list of
@@ -493,6 +504,24 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
      * @private
      */
     this.toolbox_ = new Blockly.Toolbox(this);
+
+    // If there is, add all blocks xml to the
+    this.allBlocksXml = this.options.languageTree.getElementsByTagName('block');
+
+//     0: "motion"
+// 1: "looks"
+// 2: "sound"
+// 3: "events"
+// 4: "control"
+// 5: "sensing"
+// 6: "operators"
+// 7: "data"
+// 8: "more"
+// 9: "extensions"
+    // let excludedCategories = ['events','sensing','operators','data','more','extensions']
+    // let filteredCategories = this.toolbox_.categoryMenu_;
+    // // categories_.filter( c => !excludedCategories.includes(c))
+    // console.log(filteredCategories)
   }
   if (this.grid_) {
     this.grid_.update(this.scale);
@@ -770,6 +799,17 @@ Blockly.WorkspaceSvg.prototype.getParentSvg = function() {
 // MARK: New NEED
 Blockly.WorkspaceSvg.prototype.toggleBlockBrush = function() {
   this.blockBrushActivated = !this.blockBrushActivated;
+  // this.useWorkspaceDragSurface_ = !this.useWorkspaceDragSurface_;
+}
+
+// MARK: New listener hooked in from workspace dragger
+Blockly.WorkspaceSvg.prototype.updateDragDelta =  function(ogCoord,newCoord) {
+  this.dragDeltaXY_ = ogCoord
+  if(this.blockBrushActivated) {
+    this.drawWithBlockBrush(ogCoord.x,ogCoord.y);
+  } else {
+    this.scrollbar.set(newCoord.x,newCoord.y);
+  }
 }
 
 // MARK: Need
@@ -779,22 +819,39 @@ Blockly.WorkspaceSvg.prototype.toggleBlockBrush = function() {
  * @param {number} y Vertical translation.
  */
 Blockly.WorkspaceSvg.prototype.translate = function(x, y) {
-
-  // console.log("TRANSLATING: " + x,y);
-
-  if (this.useWorkspaceDragSurface_ && this.isDragSurfaceActive_) {
-    this.workspaceDragSurface_.translateSurface(x,y);
-  } else {
-    var translation = 'translate(' + x + ',' + y + ') ' +
-        'scale(' + this.scale + ')';
-    this.svgBlockCanvas_.setAttribute('transform', translation);
-    this.svgBubbleCanvas_.setAttribute('transform', translation);
-  }
-  // Now update the block drag surface if we're using one.
-  if (this.blockDragSurface_) {
-    this.blockDragSurface_.translateAndScaleGroup(x, y, this.scale);
-  }
+    if (this.useWorkspaceDragSurface_ && this.isDragSurfaceActive_) {
+      this.workspaceDragSurface_.translateSurface(x,y);
+    } else {
+      var translation = 'translate(' + x + ',' + y + ') ' +
+          'scale(' + this.scale + ')';
+      this.svgBlockCanvas_.setAttribute('transform', translation);
+      this.svgBubbleCanvas_.setAttribute('transform', translation);
+    }
+    // Now update the block drag surface if we're using one.
+    if (this.blockDragSurface_) {
+      this.blockDragSurface_.translateAndScaleGroup(x, y, this.scale);
+    }
 };
+
+
+/**
+ * Draws a random block at a given mouse coordinate.
+ * @param {number} x Horizontal translation.
+ * @param {number} y Vertical translation.
+ */
+Blockly.WorkspaceSvg.prototype.drawWithBlockBrush  = function(x, y) {
+  if(this.allBlocksXml !== null) {
+    var mouseCoord = new goog.math.Coordinate(this.mouseX,this.mouseY)
+    var dragOffsetCoord = new goog.math.Coordinate(x,y)
+    var currentCoord = goog.math.Coordinate.sum(mouseCoord, dragOffsetCoord)
+    var blockXML = this.allBlocksXml[Math.floor(Math.random() * this.allBlocksXml.length)];
+
+    // Use some other kind of grid to restrict placement
+    if(currentCoord.x.toFixed(0) % 2 === 0 && currentCoord.y.toFixed(0) % 2 === 0 ) {
+      this.pasteBlockAtPosition(blockXML, currentCoord.x, currentCoord.y)
+    }
+  }
+}
 
 /**
  * Called at the end of a workspace drag to take the contents
@@ -829,6 +886,10 @@ Blockly.WorkspaceSvg.prototype.setupDragSurface = function() {
   if (!this.useWorkspaceDragSurface_) {
     return;
   }
+
+  // if(this.blockBrushActivated) {
+  //   return;
+  // }
 
   // This can happen if the user starts a drag, mouses up outside of the
   // document where the mouseup listener is registered (e.g. outside of an
@@ -1063,7 +1124,7 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
   if (!this.rendered) {
     return;
   }
-  if (this.currentGesture_) {
+  if (this.currentGesture_ && !this.blockBrushActivated) {
     this.currentGesture_.cancel();  // Dragging while pasting?  No.
   }
   if (xmlBlock.tagName.toLowerCase() == 'comment') {
@@ -1072,6 +1133,120 @@ Blockly.WorkspaceSvg.prototype.paste = function(xmlBlock) {
     this.pasteBlock_(xmlBlock);
   }
 };
+
+/**
+* Paste a provided block a specific X,Y position
+* Used for the block brush
+*/
+
+
+var lastPastedBlock = null;
+
+Blockly.WorkspaceSvg.prototype.pasteBlockAtPosition = function(xmlBlock, x, y) {
+  Blockly.Events.disable();
+  var canCreateBlock = false;
+  try {
+    var block = Blockly.Xml.domToBlock(xmlBlock, this);
+    // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
+    Blockly.scratchBlocksUtils.changeObscuredShadowIds(block);
+
+    var canPaste = true;
+    if(lastPastedBlock !== null) {
+
+      // First check if there are other blocks.
+      // var allBlocks = this.getAllBlocks();
+      // for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
+      //   var otherXY = otherBlock.getRelativeToSurfaceXY();
+      //   if (Math.abs(x - otherXY.x) <= 1 &&
+      //       Math.abs(y - otherXY.y) <= 1) {
+      //         canPaste = false;
+      //         break;
+      //   }
+      // }
+
+      // we know the last pasted block with the brush, so no need to search?
+      if(lastPastedBlock.nextConnection !== null
+        && block.previousConnection !== null
+        && block.getParent() === null
+        && lastPastedBlock.getParent() === null
+        && canPaste
+      ) {
+        if(lastPastedBlock.nextConnection.isConnectionAllowed(block.previousConnection)) {
+          canCreateBlock = true
+          lastPastedBlock.nextConnection.connect(block.previousConnection);
+
+        }
+
+        // if (lastPastedBlock.nextConnection.isConnectionAllowed(block.previousConnection,Blockly.SNAP_RADIUS)) {
+        // }
+
+
+      }
+      // console.log(lastPastedBlock);
+    }
+
+    // if(lastConnection !== null) {
+    //
+    //   console.log("Last connection: " + lastConnection)
+    //   var neighbour = lastConnection.closest(Blockly.SNAP_RADIUS*10, block.xy_);
+    //   console.log(neighbour)
+    //
+    //   if(neighbour !== null) {
+    //     if(neighbour.connection !== null) {
+    //     //console.log
+    //     console.log(neighbour);
+    //     }
+    //     // block.previousConnection.connect(neighbour.connection);
+    //   }
+    //
+    // }
+
+    // Check for blocks in snap range to any of its connections.
+    // var connections = block.getConnections_(false);
+    // for (var i = 0, connection; connection = connections[i]; i++) {
+    //   var neighbour = connection.closest(Blockly.SNAP_RADIUS*3, block.xy_);
+    //   if (neighbour.connection) {
+    //     closestBlock = neighbour;
+    //     break;
+    //   }
+    // }
+
+    // console.log("whut")
+    //
+    // // block.lastConnectionInStack().connect(closestBlock.connection)
+    //
+    //
+    // // Create the new block and connection
+    // if (collide) {
+    //   if(closestBlock !== null) {
+    //
+    //     block.lastConnectionInStack().connect(closestBlock.connection)
+    //     //
+    //     // if(block.nextConnection.isConnectionAllowed(closestBlock.connection,10)) {
+    //     //   console.log("Connection allowed")
+    //     //   block.lastConnectionInStack().connect(closestBlock.connection)
+    //     //   // block.nextConnection.
+    //     //   // block.nextConnection.tighten();
+    //     //   // block.previousConnection.tighten();
+    //     //
+    //     //   canCreateBlock = true;
+    //     // }
+    //   }
+    // }
+
+    block.moveBy(x, y);
+    block.snapToGrid();
+    lastPastedBlock = block
+
+    // }
+  } finally {
+    Blockly.Events.enable();
+  }
+  if (Blockly.Events.isEnabled() && !block.isShadow() && canCreateBlock) {
+    Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
+  }
+
+}
 
 /**
  * Paste the provided block onto the workspace.
@@ -1094,15 +1269,19 @@ Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock) {
       // distance with neighbouring blocks.
       do {
         var collide = false;
+        var withinSnappingRadius = false;
+
         var allBlocks = this.getAllBlocks();
         for (var i = 0, otherBlock; otherBlock = allBlocks[i]; i++) {
           var otherXY = otherBlock.getRelativeToSurfaceXY();
           if (Math.abs(blockX - otherXY.x) <= 1 &&
               Math.abs(blockY - otherXY.y) <= 1) {
+            withinSnappingRadius = true;
             collide = true;
             break;
           }
         }
+
         if (!collide) {
           // Check for blocks in snap range to any of its connections.
           var connections = block.getConnections_(false);
@@ -1110,18 +1289,23 @@ Blockly.WorkspaceSvg.prototype.pasteBlock_ = function(xmlBlock) {
             var neighbour = connection.closest(Blockly.SNAP_RADIUS,
                 new goog.math.Coordinate(blockX, blockY));
             if (neighbour.connection) {
+              console.log(neighbour.connection);
+
               collide = true;
               break;
             }
           }
         }
         if (collide) {
+          console.log("too close! moving over")
           if (this.RTL) {
             blockX -= Blockly.SNAP_RADIUS;
           } else {
             blockX += Blockly.SNAP_RADIUS;
           }
           blockY += Blockly.SNAP_RADIUS * 2;
+          // Keeps repeating this while colliding is false, so it keeps moving it over
+          // Basically moves it by the snap radius until it's not colliding anymore
         }
       } while (collide);
       block.moveBy(blockX, blockY);
@@ -1287,7 +1471,7 @@ Blockly.WorkspaceSvg.prototype.recordBlocksArea_ = function() {
  *     which delete area the event is over.
  */
 Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
-  // console.log(e)
+  // //(e)
   var xy = new goog.math.Coordinate(e.clientX, e.clientY);
   if (this.deleteAreaTrash_ && this.deleteAreaTrash_.contains(xy)) {
     return Blockly.DELETE_AREA_TRASH;
@@ -1305,7 +1489,7 @@ Blockly.WorkspaceSvg.prototype.isDeleteArea = function(e) {
  * @return {boolean} True if event is within the bounds of the blocks UI or delete area
  */
 Blockly.WorkspaceSvg.prototype.isInsideBlocksArea = function(e) {
-  // console.log(e)
+  // //(e)
   var xy = new goog.math.Coordinate(e.clientX, e.clientY);
   if (this.isDeleteArea(e) || (this.blocksArea_ && this.blocksArea_.contains(xy))) {
     return true;
@@ -1319,23 +1503,23 @@ Blockly.WorkspaceSvg.prototype.isInsideBlocksArea = function(e) {
  * @param {!Event} e Mouse down event.
  * @private
  */
+Blockly.WorkspaceSvg.prototype.mouseX = 0;
+Blockly.WorkspaceSvg.prototype.mouseY = 0;
+
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
-  if(this.blockBrushActivated) {
 
-    var gesture = this.getGesture(e);
-    if (gesture) {
-      gesture.handleWsStart(e, this);
-    }
+  var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),  this.getInverseScreenCTM());
+  var rel = this.getOriginOffsetInPixels();
+  this.mouseX = (point.x - rel.x) / this.scale;
+  this.mouseY = (point.y - rel.y) / this.scale;
 
-    // console.log("Mouse down with block brush")
-    // console.log("LAYER:" + e.layerX, e.layerY)
-    console.log("CLIENT:" + e.clientX, e.clientY)
+  // This CORRECTLY places a block at a mouse down event.
+  // var blockXML = this.allBlocksXml[Math.floor(Math.random() * this.allBlocksXml.length)];
+  // this.pasteBlockAtPosition(blockXML, this.mouseX, this.mouseY);
 
-  } else {
-    var gesture = this.getGesture(e);
-    if (gesture) {
-      gesture.handleWsStart(e, this);
-    }
+  var gesture = this.getGesture(e);
+  if (gesture) {
+    gesture.handleWsStart(e, this);
   }
 };
 
@@ -1345,9 +1529,19 @@ Tyler
  * @param {!Event} e Mouse move event.
  * @private
  */
-// Blockly.WorkspaceSvg.prototype.onMouseOver_ = function(e) {
-//   console.log("Mouse over")
-// };
+Blockly.WorkspaceSvg.prototype.onMouseMove_ = function(e) {
+  //("Mouse moved")
+};
+
+/**
+Tyler
+ * Handle a mouse-over on SVG drawing surface.
+ * @param {!Event} e Mouse move event.
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.onMouseOver_ = function(e) {
+  //("Mouse over")
+};
 
 
 
@@ -1358,15 +1552,17 @@ Tyler
  * @param {!goog.math.Coordinate} xy Starting location of object.
  */
 Blockly.WorkspaceSvg.prototype.startDrag = function(e, xy) {
-  // Record the starting offset between the bubble's location and the mouse.
-  // console.log(e);
-  var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
-      this.getInverseScreenCTM());
-
-  // Fix scale of mouse event.
-  point.x /= this.scale;
-  point.y /= this.scale;
-  this.dragDeltaXY_ = goog.math.Coordinate.difference(xy, point);
+  if(this.blockBrushActivated) {
+    //(e)
+  } else{
+    // Record the starting offset between the bubble's location and the mouse.
+    var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
+        this.getInverseScreenCTM());
+    // Fix scale of mouse event.
+    point.x /= this.scale;
+    point.y /= this.scale;
+    this.dragDeltaXY_ = goog.math.Coordinate.difference(xy, point);
+  }
 };
 
 // MARK: Need
@@ -1376,7 +1572,6 @@ Blockly.WorkspaceSvg.prototype.startDrag = function(e, xy) {
  * @return {!goog.math.Coordinate} New location of object.
  */
 Blockly.WorkspaceSvg.prototype.moveDrag = function(e) {
-  // console.log(e);
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
       this.getInverseScreenCTM());
   // Fix scale of mouse event.
@@ -1390,6 +1585,7 @@ Blockly.WorkspaceSvg.prototype.moveDrag = function(e) {
  * @return {boolean} True if currently dragging or scrolling.
  */
 Blockly.WorkspaceSvg.prototype.isDragging = function() {
+  // //("Dragging")
   return this.currentGesture_ && this.currentGesture_.isDragging();
 };
 
@@ -1407,9 +1603,6 @@ Blockly.WorkspaceSvg.prototype.isDraggable = function() {
  * @private
  */
 Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
-  // TODO: Remove gesture cancellation and compensate for coordinate skew during
-  // zoom.
-  // console.log("Wheeling");
   if (this.currentGesture_) {
     this.currentGesture_.cancel();
   }
@@ -2283,7 +2476,6 @@ Blockly.WorkspaceSvg.prototype.removeToolboxCategoryCallback = function(key) {
  */
 Blockly.WorkspaceSvg.prototype.getGesture = function(e) {
   var isStart = (e.type == 'mousedown' || e.type == 'touchstart');
-
   var gesture = this.currentGesture_;
   if (gesture) {
     if (isStart && gesture.hasStarted()) {

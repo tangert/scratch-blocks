@@ -78,6 +78,7 @@ Blockly.WorkspaceDragger.prototype.dispose = function() {
  * @package
  */
 Blockly.WorkspaceDragger.prototype.startDrag = function() {
+  // debugger;
   if (Blockly.selected) {
     Blockly.selected.unselect();
   }
@@ -116,9 +117,24 @@ Blockly.WorkspaceDragger.prototype.drag = function(currentDragDeltaXY) {
 
   x = -x - metrics.contentLeft;
   y = -y - metrics.contentTop;
+  var newCoord = new goog.math.Coordinate(x,y);
 
-  this.updateScroll_(x, y);
+  this.updateDragDelta_(currentDragDeltaXY, newCoord);
 };
+
+/**
+ * Send x,y drag data directly to the workspace.
+ * x and y are in pixels.
+ * @param {goog.math.Coordinate} ogCoord The original XY coordinate without adjustment for workspace metrics
+ * @param {goog.math.Coordinate} newCoord The new coordinate used to adjust the scrollbar.
+ * @private
+ */
+
+// TODO: Clean this up...
+Blockly.WorkspaceDragger.prototype.updateDragDelta_ = function(ogCoord, newCoord) {
+    this.workspace_.updateDragDelta(ogCoord, newCoord);
+};
+
 
 /**
  * Move the scrollbars to drag the workspace.
@@ -128,5 +144,5 @@ Blockly.WorkspaceDragger.prototype.drag = function(currentDragDeltaXY) {
  * @private
  */
 Blockly.WorkspaceDragger.prototype.updateScroll_ = function(x, y) {
-  this.workspace_.scrollbar.set(x, y);
+    this.workspace_.scrollbar.set(x, y);
 };

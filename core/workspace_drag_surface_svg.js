@@ -113,7 +113,7 @@ Blockly.WorkspaceDragSurfaceSvg.prototype.translateSurface = function(x, y) {
   // fuzzy while they are being moved on the drag surface.
   var fixedX = x.toFixed(0);
   var fixedY = y.toFixed(0);
-
+  //
   this.SVG_.style.display = 'block';
   Blockly.utils.setCssTransform(
       this.SVG_, 'translate3d(' + fixedX + 'px, ' + fixedY + 'px, 0px)');

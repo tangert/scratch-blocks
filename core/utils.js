@@ -327,6 +327,25 @@ Blockly.utils.mouseToSvg = function(e, svg, matrix) {
 };
 
 /**
+ * Return the converted coordinates of the given point object.
+ * The origin (0,0) is the top-left corner of the Blockly SVG.
+ * @param {!Object} point point object.
+ * @param {!Element} svg SVG element.
+ * @param {SVGMatrix} matrix Inverted screen CTM to use.
+ * @return {!SVGPoint} Object with .x and .y properties.
+ */
+Blockly.utils.mouseToSvg = function(point, svg, matrix) {
+  var svgPoint = svg.createSVGPoint();
+  svgPoint.x = point.x;
+  svgPoint.y = point.y;
+
+  if (!matrix) {
+    matrix = svg.getScreenCTM().inverse();
+  }
+  return svgPoint.matrixTransform(matrix);
+};
+
+/**
  * Given an array of strings, return the length of the shortest one.
  * @param {!Array.<string>} array Array of strings.
  * @return {number} Length of shortest string.
