@@ -393,10 +393,25 @@ Blockly.Xml.textToDom = function(text) {
       dom.firstChild.nodeName.toLowerCase() != 'xml' ||
       dom.firstChild !== dom.lastChild) {
     // Whatever we got back from the parser is not XML.
-    goog.asserts.fail('Blockly.Xml.textToDom did not obtain a valid XML tree.');
+    // goog.asserts.fail('Blockly.Xml.textToDom did not obtain a valid XML tree.');
   }
   return dom.firstChild;
 };
+
+
+/**
+ * Converts plain text into a DOM structure.
+ * Same as function above without error handling
+ * @param {string} text Text representation.
+ * @return {!Element} A tree of XML elements.
+ */
+Blockly.Xml.textToDomLoose = function(text) {
+  var oParser = new DOMParser();
+  var dom = oParser.parseFromString(text, 'text/xml');
+  return dom.firstChild;
+};
+
+
 
 /**
  * Clear the given workspace then decode an XML DOM and

@@ -196,22 +196,23 @@ Blockly.Toolbox.prototype.showAll_ = function() {
   var allContents = [];
   for (var i = 0; i < this.categoryMenu_.categories_.length; i++) {
     var category = this.categoryMenu_.categories_[i];
-
-    // create a label node to go at the top of the category
-    var labelString = '<xml><label text="' + category.name_ + '"' +
-      ' id="' + category.id_ + '"' +
-      ' category-label="true"' +
-      ' showStatusButton="' + category.showStatusButton_ + '"' +
-      ' web-class="categoryLabel">' +
-      '</label></xml>';
+    console.log(category)
+    var labelString = this.createCategoryLabelString(category);
     var labelXML = Blockly.Xml.textToDom(labelString);
-
     allContents.push(labelXML.firstChild);
-
     allContents = allContents.concat(category.getContents());
   }
   this.flyout_.show(allContents);
 };
+
+Blockly.Toolbox.prototype.createCategoryLabelString = function(category) {
+  return '<xml><label text="' + category.name_ + '"' +
+    ' id="' + category.id_ + '"' +
+    ' category-label="true"' +
+    ' showStatusButton="' + category.showStatusButton_ + '"' +
+    ' web-class="categoryLabel">' +
+    '</label></xml>';
+}
 
 /**
  * Get the width of the toolbox.
@@ -566,6 +567,31 @@ Blockly.Toolbox.prototype.setSelectedItemFactory = function(item) {
   };
 };
 
+Blockly.Toolbox.prototype.surprise = function(item) {
+  var selectedItem = item;
+  return function() {
+    if (!this.workspace_.isDragging()) {
+      console.log("surprise!")
+
+      var toolbox = workspace.options.languageTree;
+      if (!toolbox) {
+        console.error('Toolbox not found; add a toolbox element to the DOM.');
+        return;
+      }
+      var blocks = toolbox.getElementsByTagName('block');
+      var blockXML = blocks[Math.floor(Math.random() * blocks.length)];
+      var block = Blockly.Xml.domToBlock(blockXML, workspace);
+      block.initSvg();
+      block.moveBy(
+        Math.round(Math.random() * 450 + 40),
+        Math.round(Math.random() * 600 + 40)
+      );
+
+      Blockly.Touch.clearTouchIdentifier();
+    }
+  };
+}
+
 // Category menu
 /**
  * Class for a table of category titles that will control which category is
@@ -613,7 +639,14 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
   this.createDom();
   var categories = [];
   // Find actual categories from the DOM tree.
-  for (var i = 0, child; child = domTree.childNodes[i]; i++) {
+  // Add the surprise button
+  let surpriseXML = '<category name="Surprise" ' +
+                    'id="surprise" colour="#FF6680" secondaryColour="#FF4D6A" ' +
+                    'iconURI="../media/extensions/wedo2-block-icon.svg" showStatusButton="false"></category>';
+  let surpriseButtonNode = Blockly.Xml.textToDomLoose(surpriseXML);
+  let allNodes = [...domTree.childNodes, surpriseButtonNode];
+
+  for (var i = 0, child; child = allNodes[i]; i++) {
     if (!child.tagName || child.tagName.toUpperCase() != 'CATEGORY') {
       continue;
     }
@@ -625,11 +658,11 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
     var child = categories[i];
     var row = goog.dom.createDom('div', 'scratchCategoryMenuRow');
     this.table.appendChild(row);
-    if (child) {
-      this.categories_.push(new Blockly.Toolbox.Category(this, row,
-          child));
+    var isButton = child.getAttribute('id') === 'surprise';
+    this.categories_.push(new Blockly.Toolbox.Category(this, row,
+        child, isButton));
     }
-  }
+
   this.height_ = this.table.offsetHeight;
 };
 
@@ -657,7 +690,7 @@ Blockly.Toolbox.CategoryMenu.prototype.dispose = function() {
  * @param {Node} domTree DOM tree of blocks.
  * @constructor
  */
-Blockly.Toolbox.Category = function(parent, parentHtml, domTree) {
+Blockly.Toolbox.Category = function(parent, parentHtml, domTree, isButton) {
   this.parent_ = parent;
   this.parentHtml_ = parentHtml;
   this.name_ = domTree.getAttribute('name');
@@ -670,7 +703,11 @@ Blockly.Toolbox.Category = function(parent, parentHtml, domTree) {
   if (!this.custom_) {
     this.parseContents_(domTree);
   }
-  this.createDom();
+  if(isButton) {
+    this.createButtonDom();
+  } else {
+    this.createDom();
+  }
 };
 
 /**
@@ -731,6 +768,37 @@ Blockly.Toolbox.Category.prototype.createDom = function() {
       this.item_, 'mouseup', toolbox, toolbox.setSelectedItemFactory(this));
 };
 
+
+/**
+ * Create the DOM for a button in the toolbox.
+ */
+Blockly.Toolbox.Category.prototype.createButtonDom = function() {
+  var toolbox = this.parent_.parent_;
+  this.item_ = goog.dom.createDom('div',
+      {'class': this.getMenuItemClassName_()});
+  this.label_ = goog.dom.createDom('div',
+      {'class': 'scratchCategoryMenuItemLabel'},
+      Blockly.utils.replaceMessageReferences(this.name_));
+  if (this.iconURI_) {
+    this.bubble_ = goog.dom.createDom('div',
+        {'class': 'scratchCategoryItemIcon'});
+    this.bubble_.style.backgroundImage = 'url(' + this.iconURI_ + ')';
+  } else {
+    this.bubble_ = goog.dom.createDom('div',
+        {'class': 'scratchCategoryItemBubble'});
+    this.bubble_.style.backgroundColor = this.colour_;
+    this.bubble_.style.borderColor = this.secondaryColour_;
+  }
+  this.item_.appendChild(this.bubble_);
+  this.item_.appendChild(this.label_);
+  this.parentHtml_.appendChild(this.item_);
+  Blockly.bindEvent_(
+      this.item_, 'mouseup', toolbox, toolbox.surprise(this));
+};
+
+function surprise(){
+  console.log("SURPRISE")
+}
 /**
  * Set the selected state of this category.
  * @param {boolean} selected Whether this category is selected.

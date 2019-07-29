@@ -320,6 +320,14 @@ Blockly.WorkspaceSvg.prototype.inverseScreenCTMDirty_ = true;
 Blockly.WorkspaceSvg.prototype.allBlocksXml = null;
 
 
+/** Tyler
+ * Convenience for all block categories
+ * @type {Array}
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.blockCategories = [];
+
+
 /**
  * Getter for the inverted screen CTM.
  * @return {SVGMatrix} The matrix to use in mouseToSvg
@@ -481,14 +489,6 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
     Blockly.bindEventWithChecks_(this.svgGroup_, 'mousedown', this,
         this.onMouseDown_);
 
-    // Add support for mouse move events for continuous interaction
-    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mousemove', this,
-    //     this.onMouseMove_);
-    //
-    // // Add support for mouse move events for continuous interaction
-    // Blockly.bindEventWithChecks_(this.svgGroup_, 'mouseover', this,
-    //     this.onMouseOver_);
-
     if (this.options.zoomOptions && this.options.zoomOptions.wheel ) {
       // Mouse-wheel.
       Blockly.bindEventWithChecks_(this.svgGroup_, 'wheel', this,
@@ -506,7 +506,8 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
     this.toolbox_ = new Blockly.Toolbox(this);
 
     // If there is, add all blocks xml to the
-    this.allBlocksXml = this.options.languageTree.getElementsByTagName('block');
+    this.allBlocksXml = this.options.languageTree.getElementsByTagName('block')
+    // console.log(this.toolbox_.categoryMenu_.categories_);
 
 //     0: "motion"
 // 1: "looks"
@@ -846,10 +847,11 @@ Blockly.WorkspaceSvg.prototype.drawWithBlockBrush  = function(x, y) {
     var currentCoord = goog.math.Coordinate.sum(mouseCoord, dragOffsetCoord)
     var blockXML = this.allBlocksXml[Math.floor(Math.random() * this.allBlocksXml.length)];
 
-    // Use some other kind of grid to restrict placement
-    if(currentCoord.x.toFixed(0) % 2 === 0 && currentCoord.y.toFixed(0) % 2 === 0 ) {
-      this.pasteBlockAtPosition(blockXML, currentCoord.x, currentCoord.y)
-    }
+    // if(dragOffsetCoord.y.toFixed(0) % Blockly.CONNECTING_SNAP_RADIUS === 0)  {
+    //      console.log(dragOffsetCoord.y.toFixed(0) % Blockly.SNAP_RADIUS/2)
+    //      console.log("PASTE");
+    //   this.pasteBlockAtPosition(blockXML, currentCoord.x, currentCoord.y)
+    // }
   }
 }
 
