@@ -642,7 +642,7 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
   // Add the surprise button
   let surpriseXML = '<category name="Surprise" ' +
                     'id="surprise" colour="#FF6680" secondaryColour="#FF4D6A" ' +
-                    'iconURI="../media/extensions/wedo2-block-icon.svg" showStatusButton="false"></category>';
+                    'iconURI="../media/icons/surprise-blue.svg" showStatusButton="false"></category>';
   let surpriseButtonNode = Blockly.Xml.textToDomLoose(surpriseXML);
   let allNodes = [...domTree.childNodes, surpriseButtonNode];
 
