@@ -571,7 +571,6 @@ Blockly.Toolbox.prototype.surprise = function(item) {
   var selectedItem = item;
   return function() {
     if (!this.workspace_.isDragging()) {
-      console.log("surprise!")
 
       var toolbox = workspace.options.languageTree;
       if (!toolbox) {
@@ -581,6 +580,12 @@ Blockly.Toolbox.prototype.surprise = function(item) {
       var blocks = toolbox.getElementsByTagName('block');
       var blockXML = blocks[Math.floor(Math.random() * blocks.length)];
       var block = Blockly.Xml.domToBlock(blockXML, workspace);
+
+      this.scrollToCategoryById(block.category_);
+
+      // console.log(block)
+      console.log(block.category_)
+
       block.initSvg();
       block.moveBy(
         Math.round(Math.random() * 450 + 40),
@@ -640,7 +645,7 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
   var categories = [];
   // Find actual categories from the DOM tree.
   // Add the surprise button
-  let surpriseXML = '<category name="Surprise" ' +
+  let surpriseXML = '<category name="Surprise!" ' +
                     'id="surprise" colour="#FF6680" secondaryColour="#FF4D6A" ' +
                     'iconURI="../media/icons/surprise-blue.svg" showStatusButton="false"></category>';
   let surpriseButtonNode = Blockly.Xml.textToDomLoose(surpriseXML);
@@ -796,9 +801,6 @@ Blockly.Toolbox.Category.prototype.createButtonDom = function() {
       this.item_, 'mouseup', toolbox, toolbox.surprise(this));
 };
 
-function surprise(){
-  console.log("SURPRISE")
-}
 /**
  * Set the selected state of this category.
  * @param {boolean} selected Whether this category is selected.
