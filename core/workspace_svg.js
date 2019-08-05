@@ -807,6 +807,7 @@ Blockly.WorkspaceSvg.prototype.toggleBlockBrush = function() {
 Blockly.WorkspaceSvg.prototype.updateDragDelta =  function(ogCoord,newCoord) {
   this.dragDeltaXY_ = ogCoord
   if(this.blockBrushActivated) {
+    // console.log(ogCoord)
     this.drawWithBlockBrush(ogCoord.x,ogCoord.y);
   } else {
     this.scrollbar.set(newCoord.x,newCoord.y);
@@ -847,11 +848,12 @@ Blockly.WorkspaceSvg.prototype.drawWithBlockBrush  = function(x, y) {
     var currentCoord = goog.math.Coordinate.sum(mouseCoord, dragOffsetCoord)
     var blockXML = this.allBlocksXml[Math.floor(Math.random() * this.allBlocksXml.length)];
 
-    // if(dragOffsetCoord.y.toFixed(0) % Blockly.CONNECTING_SNAP_RADIUS === 0)  {
-    //      console.log(dragOffsetCoord.y.toFixed(0) % Blockly.SNAP_RADIUS/2)
-    //      console.log("PASTE");
-    //   this.pasteBlockAtPosition(blockXML, currentCoord.x, currentCoord.y)
-    // }
+// Blockly.CONNECTING_SNAP_RADIUS
+    if(dragOffsetCoord.y.toFixed(0) % 10 === 0)  {
+         console.log(dragOffsetCoord.y.toFixed(0) % Blockly.SNAP_RADIUS/2)
+         console.log("PASTE");
+      this.pasteBlockAtPosition(blockXML, currentCoord.x, currentCoord.y)
+    }
   }
 }
 
@@ -1509,7 +1511,7 @@ Blockly.WorkspaceSvg.prototype.mouseX = 0;
 Blockly.WorkspaceSvg.prototype.mouseY = 0;
 
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
-
+  console.log("Mouse down")
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),  this.getInverseScreenCTM());
   var rel = this.getOriginOffsetInPixels();
   this.mouseX = (point.x - rel.x) / this.scale;
@@ -1804,7 +1806,42 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
       }
     }
   };
+
   menuOptions.push(deleteOption);
+
+  // Option to offer suggestions
+  var suggestionLength = 5;
+
+  var suggestionOption = {
+    text: 'Suggest blocks',
+    enabled: this.topBlocks_.length > 0,
+    callback: function() {
+
+      // Go through all of the top blocks
+      var tops = ws.topBlocks_.map(b => b.category_)
+      console.log(tops)
+      console.log("MAGIC GENIE SHIT")
+
+      for(var i = 0; i < suggestionLength; i++) {
+        var blockXML = ws.allBlocksXml[Math.floor(Math.random() * ws.allBlocksXml.length)];
+        var block = Blockly.Xml.domToBlock(blockXML, ws);
+        block.initSvg();
+        // make it below the last click point
+        //
+        // Math.round(Math.random() * 450 + 40),
+        // Math.round(Math.random() * 600 + 40)
+        //
+        block.moveBy(
+          ws.mouseX + Math.random() * (i - suggestionLength/2) * Blockly.SNAP_RADIUS*4,
+          ws.mouseY + Math.random() * Blockly.SNAP_RADIUS*4
+        );
+
+        Blockly.Touch.clearTouchIdentifier();
+      }
+    }
+  };
+
+  menuOptions.push(suggestionOption)
 
   Blockly.ContextMenu.show(e, menuOptions, this.RTL);
 };

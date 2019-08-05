@@ -1058,7 +1058,7 @@ Blockly.Css.CONTENT = [
   */
 
   '.blocklyWidgetDiv .goog-menu:hover {',
-    'background: red',
+    // 'background: red',
   '}',
 
   /* Copied from: goog/css/menuitem.css */

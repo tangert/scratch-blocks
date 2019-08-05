@@ -103,6 +103,10 @@ Blockly.Toolbox.prototype.selectedItem_ = null;
  * Initializes the toolbox.
  */
 Blockly.Toolbox.prototype.init = function() {
+
+  // TODO: fix with VM and proper state handling
+  // Manually set workspace?
+  this.workspace_ = Blockly.getMainWorkspace();
   var workspace = this.workspace_;
   var svg = this.workspace_.getParentSvg();
 
@@ -196,7 +200,7 @@ Blockly.Toolbox.prototype.showAll_ = function() {
   var allContents = [];
   for (var i = 0; i < this.categoryMenu_.categories_.length; i++) {
     var category = this.categoryMenu_.categories_[i];
-    console.log(category)
+    // console.log(category)
     var labelString = this.createCategoryLabelString(category);
     var labelXML = Blockly.Xml.textToDom(labelString);
     allContents.push(labelXML.firstChild);
@@ -571,20 +575,21 @@ Blockly.Toolbox.prototype.surprise = function(item) {
   var selectedItem = item;
   return function() {
     if (!this.workspace_.isDragging()) {
-
-      var toolbox = workspace.options.languageTree;
+      var toolbox = this.workspace_.options.languageTree;
       if (!toolbox) {
         console.error('Toolbox not found; add a toolbox element to the DOM.');
         return;
       }
       var blocks = toolbox.getElementsByTagName('block');
       var blockXML = blocks[Math.floor(Math.random() * blocks.length)];
-      var block = Blockly.Xml.domToBlock(blockXML, workspace);
+      var block = Blockly.Xml.domToBlock(blockXML, this.workspace_);
 
-      this.scrollToCategoryById(block.category_);
+      // Maybe create a fake drag event that animates over the new block??
+      let categoryScroll = block.category_
+      if(categoryScroll === 'sounds') { categoryScroll = 'sound' };
+      this.scrollToCategoryById(categoryScroll);
 
-      // console.log(block)
-      console.log(block.category_)
+      // console.log(block.category_)
 
       block.initSvg();
       block.moveBy(
@@ -635,6 +640,12 @@ Blockly.Toolbox.CategoryMenu.prototype.createDom = function() {
  * @param {Node} domTree DOM tree of blocks, or null.
  */
 Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
+
+  // console.log("POPULATING TOOLBOX")
+  // console.log(Blockly.getMainWorkspace())
+  // console.log(this.workspace_)
+  // console.log(this.workspace)
+
   if (!domTree) {
     return;
   }
@@ -643,11 +654,13 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
   this.dispose();
   this.createDom();
   var categories = [];
+
   // Find actual categories from the DOM tree.
   // Add the surprise button
   let surpriseXML = '<category name="Surprise!" ' +
                     'id="surprise" colour="#FF6680" secondaryColour="#FF4D6A" ' +
-                    'iconURI="../media/icons/surprise-blue.svg" showStatusButton="false"></category>';
+                    'iconURI= "' + Blockly.mainWorkspace.options.pathToMedia + 'surprise-blue.svg"' + ' showStatusButton="false"></category>';
+
   let surpriseButtonNode = Blockly.Xml.textToDomLoose(surpriseXML);
   let allNodes = [...domTree.childNodes, surpriseButtonNode];
 
