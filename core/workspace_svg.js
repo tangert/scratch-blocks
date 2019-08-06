@@ -1818,19 +1818,16 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
     callback: function() {
 
       // Go through all of the top blocks
-      var tops = ws.topBlocks_.map(b => b.category_)
-      console.log(tops)
-      console.log("MAGIC GENIE SHIT")
-
+      var availableCategories = ws.getAllBlocks().map(b=>b.category_).filter(c=>c!== null).filter(c=>c!=='extensions')
+      var availableXML = Array.from(ws.options.languageTree.getElementsByTagName('category'))
+                                                           .filter(c=>availableCategories.includes(c.id))
+                                                           .filter(c=>c.nodeName !=="sep")
       for(var i = 0; i < suggestionLength; i++) {
-        var blockXML = ws.allBlocksXml[Math.floor(Math.random() * ws.allBlocksXml.length)];
+        var category = availableXML[Math.floor(Math.random() * availableXML.length)];
+        var children = Array.from(category.children).filter(c=>c.nodeName === "block")
+        var blockXML = children[Math.floor(Math.random() * children.length)];
         var block = Blockly.Xml.domToBlock(blockXML, ws);
         block.initSvg();
-        // make it below the last click point
-        //
-        // Math.round(Math.random() * 450 + 40),
-        // Math.round(Math.random() * 600 + 40)
-        //
         block.moveBy(
           ws.mouseX + Math.random() * (i - suggestionLength/2) * Blockly.SNAP_RADIUS*4,
           ws.mouseY + Math.random() * Blockly.SNAP_RADIUS*4
