@@ -163,6 +163,19 @@ Blockly.Events.COMMENT_DELETE = 'comment_delete';
  */
 Blockly.Events.UI = 'ui';
 
+
+
+//////////////////////////////
+//////////////////////////////
+//////////////////////////////
+/**
+ * new events for context menu listeners / block suggestion.
+ */
+Blockly.Events.SHOW_BLOCK_CONTEXT_MENU = 'show_block_context_menu';
+Blockly.Events.SHOW_WORKSPACE_CONTEXT_MENU = 'show_workspace_context_menu';
+Blockly.Events.BLOCK_SUGGEST = 'block_suggest';
+Blockly.Events.WORKSPACE_SUGGEST = 'workspace_suggest';
+
 /**
  * List of events queued for firing.
  * @private
@@ -381,6 +394,20 @@ Blockly.Events.fromJson = function(json, workspace) {
       break;
     case Blockly.Events.END_DRAG:
       event = new Blockly.Events.EndBlockDrag(null, false);
+      break;
+
+    // New context menu stuff.
+    case Blockly.Events.SHOW_BLOCK_CONTEXT_MENU:
+      event = new Blockly.Events.showBlockContextMenu(null);
+      break;
+    case Blockly.Events.BLOCK_SUGGEST:
+      event = new Blockly.Events.blockSuggest(null);
+      break;
+    case Blockly.Events.SHOW_WORKSPACE_CONTEXT_MENU:
+      event = new Blockly.Events.showWorkspaceContextMenu(null);
+      break;
+    case Blockly.Events.WORKSPACE_SUGGEST:
+      event = new Blockly.Events.workspaceSuggest(null);
       break;
     default:
       throw 'Unknown event type.';

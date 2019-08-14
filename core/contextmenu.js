@@ -516,4 +516,18 @@ Blockly.ContextMenu.workspaceCommentOption = function(ws, e) {
   return wsCommentOption;
 };
 
+
+Blockly.ContextMenu.suggestionOption = function(block) {
+  // Suggestions.
+  var suggestionOption = {
+    text: 'Suggest blocks',
+    enabled: true,
+    callback: function() {
+        var suggestion = new Blockly.Events.blockSuggest(block);
+        Blockly.Events.fire(suggestion);
+      }
+    }
+    return suggestionOption;
+  };
+
 // End helper functions for creating context menu options.

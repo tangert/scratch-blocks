@@ -682,6 +682,8 @@ Blockly.BlockSvg.prototype.showHelp_ = function() {
  * @private
  */
 Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
+  // console.log("Block context menu!")
+
   if (this.workspace.options.readOnly || !this.contextMenu) {
     return;
   }
@@ -700,12 +702,24 @@ Blockly.BlockSvg.prototype.showContextMenu_ = function(e) {
     return;
   }
 
+  ////////////////////////
+  // NEW!!!
+  // Add suggestion option
+  // Only once it's added to the workspace
+  if(!block.isInFlyout) {
+    menuOptions.push(Blockly.ContextMenu.suggestionOption(block));
+  }
+
   // Allow the block to add or modify menuOptions.
   if (this.customContextMenu) {
     this.customContextMenu(menuOptions);
   }
   Blockly.ContextMenu.show(e, menuOptions, this.RTL);
   Blockly.ContextMenu.currentBlock = this;
+
+  // Add a blockly event to communicate back to VM / GUI.
+  var event = new Blockly.Events.showBlockContextMenu(this);
+  Blockly.Events.fire(event);
 };
 
 /**

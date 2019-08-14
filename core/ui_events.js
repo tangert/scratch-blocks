@@ -89,3 +89,19 @@ Blockly.Events.Ui.prototype.fromJson = function(json) {
   this.newValue = json['newValue'];
   this.blockId = json['blockId'];
 };
+
+// FOR THE WORKSPACE (TODO: move these out eventually)
+// CURRENTLY NOT WORKING
+// Show context menu
+Blockly.Events.showWorkspaceContextMenu = function(ws) {
+  Blockly.Events.showWorkspaceContextMenu.superClass_.constructor.call(this, ws);
+};
+goog.inherits(Blockly.Events.showWorkspaceContextMenu, Blockly.Events.Abstract);
+Blockly.Events.showWorkspaceContextMenu.prototype.type = Blockly.Events.SHOW_WORKSPACE_CONTEXT_MENU;
+
+// Press suggest
+Blockly.Events.workspaceSuggest = function(ws) {
+  Blockly.Events.workspaceSuggest.superClass_.constructor.call(this, ws);
+};
+goog.inherits(Blockly.Events.workspaceSuggest, Blockly.Events.Abstract);
+Blockly.Events.workspaceSuggest.prototype.type = Blockly.Events.WORKSPACE_SUGGEST;

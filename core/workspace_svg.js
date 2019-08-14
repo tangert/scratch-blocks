@@ -1180,64 +1180,8 @@ Blockly.WorkspaceSvg.prototype.pasteBlockAtPosition = function(xmlBlock, x, y) {
           lastPastedBlock.nextConnection.connect(block.previousConnection);
 
         }
-
-        // if (lastPastedBlock.nextConnection.isConnectionAllowed(block.previousConnection,Blockly.SNAP_RADIUS)) {
-        // }
-
-
       }
-      // console.log(lastPastedBlock);
     }
-
-    // if(lastConnection !== null) {
-    //
-    //   console.log("Last connection: " + lastConnection)
-    //   var neighbour = lastConnection.closest(Blockly.SNAP_RADIUS*10, block.xy_);
-    //   console.log(neighbour)
-    //
-    //   if(neighbour !== null) {
-    //     if(neighbour.connection !== null) {
-    //     //console.log
-    //     console.log(neighbour);
-    //     }
-    //     // block.previousConnection.connect(neighbour.connection);
-    //   }
-    //
-    // }
-
-    // Check for blocks in snap range to any of its connections.
-    // var connections = block.getConnections_(false);
-    // for (var i = 0, connection; connection = connections[i]; i++) {
-    //   var neighbour = connection.closest(Blockly.SNAP_RADIUS*3, block.xy_);
-    //   if (neighbour.connection) {
-    //     closestBlock = neighbour;
-    //     break;
-    //   }
-    // }
-
-    // console.log("whut")
-    //
-    // // block.lastConnectionInStack().connect(closestBlock.connection)
-    //
-    //
-    // // Create the new block and connection
-    // if (collide) {
-    //   if(closestBlock !== null) {
-    //
-    //     block.lastConnectionInStack().connect(closestBlock.connection)
-    //     //
-    //     // if(block.nextConnection.isConnectionAllowed(closestBlock.connection,10)) {
-    //     //   console.log("Connection allowed")
-    //     //   block.lastConnectionInStack().connect(closestBlock.connection)
-    //     //   // block.nextConnection.
-    //     //   // block.nextConnection.tighten();
-    //     //   // block.previousConnection.tighten();
-    //     //
-    //     //   canCreateBlock = true;
-    //     // }
-    //   }
-    // }
-
     block.moveBy(x, y);
     block.snapToGrid();
     lastPastedBlock = block
@@ -1714,9 +1658,15 @@ Blockly.WorkspaceSvg.prototype.cleanUp = function() {
  * @private
  */
 Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
+  // console.log("Workspace context menu!")
+
   if (this.options.readOnly || this.isFlyout) {
     return;
   }
+
+  var showWorkspace = new Blockly.Events.showWorkspaceContextMenu(this);
+  Blockly.Events.fire(showWorkspace);
+
   var menuOptions = [];
   var topBlocks = this.getTopBlocks(true);
   var eventGroup = Blockly.utils.genUid();
@@ -1816,6 +1766,9 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
     text: 'Suggest blocks',
     enabled: this.topBlocks_.length > 0,
     callback: function() {
+
+      var suggestion = new Blockly.Events.workspaceSuggest(this);
+      Blockly.Events.fire(suggestion);
 
       // Go through all of the top blocks
       var availableCategories = ws.getAllBlocks().map(b=>b.category_).filter(c=>c!== null).filter(c=>c!=='extensions')

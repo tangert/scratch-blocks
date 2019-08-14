@@ -529,3 +529,27 @@ Blockly.Events.Move.prototype.run = function(forward) {
     }
   }
 };
+
+////////////////////
+// CONTEXT MENU EVENTS
+
+// FOR BLOCKS
+// Open up the context menu
+Blockly.Events.showBlockContextMenu = function(block) {
+  if (!block) {
+    return;  // Blank event to be populated by fromJson.
+  }
+  Blockly.Events.showBlockContextMenu.superClass_.constructor.call(this, block);
+};
+goog.inherits(Blockly.Events.showBlockContextMenu, Blockly.Events.BlockBase);
+Blockly.Events.showBlockContextMenu.prototype.type = Blockly.Events.SHOW_BLOCK_CONTEXT_MENU;
+
+// Press suggest
+Blockly.Events.blockSuggest = function(block) {
+  if (!block) {
+    return;  // Blank event to be populated by fromJson.
+  }
+  Blockly.Events.blockSuggest.superClass_.constructor.call(this, block);
+};
+goog.inherits(Blockly.Events.blockSuggest, Blockly.Events.BlockBase);
+Blockly.Events.blockSuggest.prototype.type = Blockly.Events.BLOCK_SUGGEST;
