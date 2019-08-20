@@ -82,6 +82,8 @@ Blockly.Toolbox = function(workspace) {
    */
   this.toolboxPosition = workspace.options.toolboxPosition;
 
+  // MARK: NEW
+  this.lastEvent_ = null
 };
 
 /**
@@ -122,6 +124,8 @@ Blockly.Toolbox.prototype.init = function() {
   // Clicking on toolbox closes popups.
   Blockly.bindEventWithChecks_(this.HtmlDiv, 'mousedown', this,
       function(e) {
+        console.log("mouse down?")
+        this.lastEvent_ = e
         // Cancel any gestures in progress.
         this.workspace_.cancelCurrentGesture();
         if (Blockly.utils.isRightButton(e) || e.target == this.HtmlDiv) {
@@ -209,6 +213,7 @@ Blockly.Toolbox.prototype.showAll_ = function() {
   this.flyout_.show(allContents);
 };
 
+// MARK: NEW
 Blockly.Toolbox.prototype.createCategoryLabelString = function(category) {
   return '<xml><label text="' + category.name_ + '"' +
     ' id="' + category.id_ + '"' +
@@ -571,33 +576,83 @@ Blockly.Toolbox.prototype.setSelectedItemFactory = function(item) {
   };
 };
 
-Blockly.Toolbox.prototype.surprise = function(item) {
+Blockly.Toolbox.prototype.surprise = function(e, item) {
+  // console.log(e)
   var selectedItem = item;
-  return function() {
+  return function(e) {
     if (!this.workspace_.isDragging()) {
       var toolbox = this.workspace_.options.languageTree;
       if (!toolbox) {
         console.error('Toolbox not found; add a toolbox element to the DOM.');
         return;
       }
-      var blocks = toolbox.getElementsByTagName('block');
+
+      var availableCategories = ['motion', 'looks', 'sound', 'event', 'control']
+      var blocks = Array.from(toolbox.getElementsByTagName('block')).filter(b=>availableCategories.includes(b.id.split('_')[0]));
+      console.log(blocks)
+
+      // Specially excluded blocks from the chosen categories
+      var excludedBlocks = ['motion_ifonedgebounce', 'motion_setrotationstyle', 'motion_xposition',  'motion_yposition',  'motion_direction',
+                            'looks_show', 'looks_hide', 'looks_cleargraphiceffects', 'looks_gotofrontback', 'looks_goforwardbackwardlayers', 'looks_costumenumbername', 'looks_backdropnumbername', 'looks_size',
+                            'sound_stopallsounds', 'sound_cleareffects', 'sound_volume',
+                            'event_whenbackdropswitchesto', 'event_whengreaterthan', 'event_whenbroadcastreceived', 'event_broadcast', 'event_broadcastandwait',
+                            'control_if', 'control_if_else', 'control_wait_until', 'control_repeat_until', 'control_stop', 'control_start_as_clone', 'control_create_clone_of', 'control_delete_this_clone']
+
+      blocks = blocks.filter(b=>!excludedBlocks.includes(b.id))
+
+      console.log(blocks)
+
       var blockXML = blocks[Math.floor(Math.random() * blocks.length)];
       var block = Blockly.Xml.domToBlock(blockXML, this.workspace_);
 
       // Maybe create a fake drag event that animates over the new block??
       let categoryScroll = block.category_
       if(categoryScroll === 'sounds') { categoryScroll = 'sound' };
-      this.scrollToCategoryById(categoryScroll);
+      this.setSelectedCategoryById(categoryScroll);
 
-      // console.log(block.category_)
+      // Blockly.scratchBlocksUtils.duplicateAndDragCallback(block, this.workspace_.lastEvent)
 
       block.initSvg();
-      block.moveBy(
-        Math.round(Math.random() * 450 + 40),
-        Math.round(Math.random() * 600 + 40)
-      );
+      this.workspace_.setResizesEnabled(false);
+      // Disable events and manually emit events after the block has been
+      // positioned and has had its shadow IDs fixed (Scratch-specific).
+      Blockly.Events.disable();
+      try {
+        // Scratch-specific: Give shadow dom new IDs to prevent duplicating on paste
+        Blockly.scratchBlocksUtils.changeObscuredShadowIds(block);
 
-      Blockly.Touch.clearTouchIdentifier();
+        var svgRootNew = block.getSvgRoot();
+        if (!svgRootNew) {
+          throw new Error('newBlock is not rendered.');
+        }
+        // Place the new block as the same position as the old block.
+        // TODO: Offset by the difference between the mouse position and the upper
+        // left corner of the block.
+        // var point = Blockly.utils.mouseToSvg(this.lastEvent_, this.workspace_.getParentSvg(),  this.workspace_.getInverseScreenCTM());
+        var rel = this.workspace_.getOriginOffsetInPixels();
+        let newX = (-rel.x) / this.workspace_.scale;
+        let newY = (this.lastEvent_.clientY - rel.y) / this.workspace_.scale;
+        block.moveBy(newX, newY - block.height*1.25);
+
+      } finally {
+        Blockly.Events.enable();
+      }
+      if (Blockly.Events.isEnabled()) {
+        Blockly.Events.fire(new Blockly.Events.BlockCreate(block));
+      }
+      var fakeEvent = {
+        clientX: this.lastEvent_.clientX,
+        clientY: this.lastEvent_.clientY,
+        type: 'mousedown',
+        preventDefault: function() {
+          e.preventDefault();
+        },
+        stopPropagation: function() {
+          e.stopPropagation();
+        },
+        target: e.target
+      };
+      this.workspace_.startDragWithFakeEvent(fakeEvent, block);
     }
   };
 }

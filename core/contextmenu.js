@@ -262,6 +262,7 @@ Blockly.ContextMenu.blockHelpOption = function(block) {
  * @package
  */
 Blockly.ContextMenu.blockDuplicateOption = function(block, event) {
+  console.log(event)
   var duplicateOption = {
     text: Blockly.Msg.DUPLICATE,
     enabled: true,

@@ -233,6 +233,10 @@ Blockly.WorkspaceSvg.prototype.scrollbar = null;
  */
 Blockly.WorkspaceSvg.prototype.currentGesture_ = null;
 
+// MARK: NEW
+// Last event recorded on the workspace
+Blockly.WorkspaceSvg.prototype.lastEvent = null;
+
 /**
  * This workspace's surface for dragging blocks, if it exists.
  * @type {Blockly.BlockDragSurfaceSvg}
@@ -1791,7 +1795,7 @@ Blockly.WorkspaceSvg.prototype.showContextMenu_ = function(e) {
     }
   };
 
-  menuOptions.push(suggestionOption)
+  // menuOptions.push(suggestionOption)
 
   Blockly.ContextMenu.show(e, menuOptions, this.RTL);
 };
@@ -2464,7 +2468,9 @@ Blockly.WorkspaceSvg.prototype.removeToolboxCategoryCallback = function(key) {
  * @package
  */
 Blockly.WorkspaceSvg.prototype.getGesture = function(e) {
+  console.log("Gesture")
   var isStart = (e.type == 'mousedown' || e.type == 'touchstart');
+  this.lastEvent = e
   var gesture = this.currentGesture_;
   if (gesture) {
     if (isStart && gesture.hasStarted()) {

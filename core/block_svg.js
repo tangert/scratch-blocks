@@ -166,6 +166,11 @@ Blockly.BlockSvg.prototype.initSvg = function() {
   if (!this.workspace.options.readOnly && !this.eventsInit_) {
     Blockly.bindEventWithChecks_(
         this.getSvgRoot(), 'mousedown', this, this.onMouseDown_);
+
+    // if(this.isDeletable() && this.isMovable() && !this.isInFlyout) {
+    //   Blockly.bindEvent_(this.getSvgRoot(), 'mouseenter', this, this.onMouseEnter_);
+    //   Blockly.bindEvent_(this.getSvgRoot(), 'mouseout', this, this.onMouseExit_);
+    // }
   }
   this.eventsInit_ = true;
 
@@ -657,6 +662,24 @@ Blockly.BlockSvg.prototype.createTabList_ = function() {
  * @private
  */
 Blockly.BlockSvg.prototype.onMouseDown_ = function(e) {
+  var gesture = this.workspace && this.workspace.getGesture(e);
+  if (gesture) {
+    gesture.handleBlockStart(e, this);
+  }
+};
+
+
+/// TYLER MOUSOE OVER
+Blockly.BlockSvg.prototype.onMouseEnter_ = function(e) {
+  console.log("mouse enter")
+  var gesture = this.workspace && this.workspace.getGesture(e);
+  if (gesture) {
+    gesture.handleBlockStart(e, this);
+  }
+};
+
+Blockly.BlockSvg.prototype.onMouseExit_ = function(e) {
+  console.log("mouse exit")
   var gesture = this.workspace && this.workspace.getGesture(e);
   if (gesture) {
     gesture.handleBlockStart(e, this);
