@@ -193,6 +193,7 @@ Blockly.InsertionMarkerManager.prototype.wouldDeleteBlock = function() {
  * @package
  */
 Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
+  console.log("applying connections")
   if (this.closestConnection_) {
     // Don't fire events for insertion markers.
     Blockly.Events.disable();
@@ -200,6 +201,11 @@ Blockly.InsertionMarkerManager.prototype.applyConnections = function() {
     Blockly.Events.enable();
     // Connect two blocks together.
     this.localConnection_.connect(this.closestConnection_);
+
+    console.log("local source" + this.localConnection_.sourceBlock_.type)
+    console.log(this.localConnection_)
+    console.log("closest source" + this.closestConnection_.sourceBlock_.type)
+
     if (this.topBlock_.rendered) {
       // Trigger a connection animation.
       // Determine which connection is inferior (lower in the source stack).
@@ -654,6 +660,8 @@ Blockly.InsertionMarkerManager.prototype.connectMarker_ = function() {
 
   var local = this.localConnection_;
   var closest = this.closestConnection_;
+
+  console.log(local, closest)
 
   var isLastInStack = this.lastOnStack_ && local == this.lastOnStack_;
   var imBlock = isLastInStack ? this.lastMarker_ : this.firstMarker_;

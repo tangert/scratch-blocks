@@ -131,6 +131,9 @@ Blockly.DraggedConnectionManager.prototype.wouldDeleteBlock = function() {
  * @package
  */
 Blockly.DraggedConnectionManager.prototype.applyConnections = function() {
+  // console.log("applying connections")
+  // debugger;
+
   if (this.closestConnection_) {
     // Connect two blocks together.
     this.localConnection_.connect(this.closestConnection_);
@@ -143,6 +146,9 @@ Blockly.DraggedConnectionManager.prototype.applyConnections = function() {
           inferiorConnection.getSourceBlock());
       // Bring the just-edited stack to the front.
       var rootBlock = this.topBlock_.getRootBlock();
+
+      console.log(rootBlock)
+
       rootBlock.bringToFront();
     }
     this.removeHighlighting_();

@@ -1460,10 +1460,20 @@ Blockly.WorkspaceSvg.prototype.mouseY = 0;
 
 Blockly.WorkspaceSvg.prototype.onMouseDown_ = function(e) {
   console.log("Mouse down")
+  console.log("CLICKING ON WORKSPACE")
+
+  // let t = new Blockly.FieldLabel("woah");
+  // console.log(t)
+  // this.svgGroup_.appendChild(t.todom)
+  // this.svgGroup_.appendChild();
+
+
   var point = Blockly.utils.mouseToSvg(e, this.getParentSvg(),  this.getInverseScreenCTM());
   var rel = this.getOriginOffsetInPixels();
   this.mouseX = (point.x - rel.x) / this.scale;
   this.mouseY = (point.y - rel.y) / this.scale;
+
+  // this.work
 
   // This CORRECTLY places a block at a mouse down event.
   // var blockXML = this.allBlocksXml[Math.floor(Math.random() * this.allBlocksXml.length)];

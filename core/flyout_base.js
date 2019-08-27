@@ -858,6 +858,7 @@ Blockly.Flyout.prototype.isScrollable = function() {
  * @private
  */
 Blockly.Flyout.prototype.placeNewBlock_ = function(oldBlock) {
+
   console.log("Placing new block");
 
   var targetWorkspace = this.targetWorkspace_;

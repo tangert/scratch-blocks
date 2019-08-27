@@ -578,7 +578,7 @@ Blockly.Toolbox.prototype.setSelectedItemFactory = function(item) {
 
 Blockly.Toolbox.prototype.surprise = function(e, item) {
   // console.log(e)
-  var selectedItem = item;
+  // var selectedItem = item;
   return function(e) {
     if (!this.workspace_.isDragging()) {
       var toolbox = this.workspace_.options.languageTree;
@@ -588,8 +588,9 @@ Blockly.Toolbox.prototype.surprise = function(e, item) {
       }
 
       var availableCategories = ['motion', 'looks', 'sound', 'event', 'control']
-      var blocks = Array.from(toolbox.getElementsByTagName('block')).filter(b=>availableCategories.includes(b.id.split('_')[0]));
-      console.log(blocks)
+      // can use block.id in blocks playground, must use getAttribute in GUI
+
+      var blocks = Array.from(toolbox.getElementsByTagName('block')).filter(b=>availableCategories.includes(b.getAttribute('type').split('_')[0]));
 
       // Specially excluded blocks from the chosen categories
       var excludedBlocks = ['motion_ifonedgebounce', 'motion_setrotationstyle', 'motion_xposition',  'motion_yposition',  'motion_direction',
@@ -598,7 +599,9 @@ Blockly.Toolbox.prototype.surprise = function(e, item) {
                             'event_whenbackdropswitchesto', 'event_whengreaterthan', 'event_whenbroadcastreceived', 'event_broadcast', 'event_broadcastandwait',
                             'control_if', 'control_if_else', 'control_wait_until', 'control_repeat_until', 'control_stop', 'control_start_as_clone', 'control_create_clone_of', 'control_delete_this_clone']
 
-      blocks = blocks.filter(b=>!excludedBlocks.includes(b.id))
+
+      // blocks = blocks.filter(b=>!excludedBlocks.includes(b.id))
+      blocks = blocks.filter(b=>!excludedBlocks.includes(b.getAttribute('type')))
 
       console.log(blocks)
 
@@ -632,7 +635,9 @@ Blockly.Toolbox.prototype.surprise = function(e, item) {
         var rel = this.workspace_.getOriginOffsetInPixels();
         let newX = (-rel.x) / this.workspace_.scale;
         let newY = (this.lastEvent_.clientY - rel.y) / this.workspace_.scale;
-        block.moveBy(newX, newY - block.height*1.25);
+        block.moveBy(newX, newY - block.height * 2);
+
+        // Perhaps suggest related blocks that are linked to others
 
       } finally {
         Blockly.Events.enable();
