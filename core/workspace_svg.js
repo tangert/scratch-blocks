@@ -814,7 +814,9 @@ Blockly.WorkspaceSvg.prototype.updateDragDelta =  function(ogCoord,newCoord) {
     // console.log(ogCoord)
     this.drawWithBlockBrush(ogCoord.x,ogCoord.y);
   } else {
-    this.scrollbar.set(newCoord.x,newCoord.y);
+    if(this.scrollbar !== null) {
+      this.scrollbar.set(newCoord.x,newCoord.y);
+    }
   }
 }
 

@@ -718,7 +718,7 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
   // Find actual categories from the DOM tree.
   // Add the surprise button
   let surpriseXML = '<category name="Surprise!" ' +
-                    'id="surprise" colour="#FF6680" secondaryColour="#FF4D6A" ' +
+                    'id="surprise-button" colour="#FF6680" secondaryColour="#FF4D6A" ' +
                     'iconURI= "' + Blockly.mainWorkspace.options.pathToMedia + 'surprise-blue.svg"' + ' showStatusButton="false"></category>';
 
   let surpriseButtonNode = Blockly.Xml.textToDomLoose(surpriseXML);
@@ -736,7 +736,7 @@ Blockly.Toolbox.CategoryMenu.prototype.populate = function(domTree) {
     var child = categories[i];
     var row = goog.dom.createDom('div', 'scratchCategoryMenuRow');
     this.table.appendChild(row);
-    var isButton = child.getAttribute('id') === 'surprise';
+    var isButton = child.getAttribute('id') === 'surprise-button';
     this.categories_.push(new Blockly.Toolbox.Category(this, row,
         child, isButton));
     }
